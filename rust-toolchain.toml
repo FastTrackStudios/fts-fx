@@ -1,0 +1,4 @@
+# The workspace compiler, for rustup. The same pin as Studio (1.99.1):
+# move them together.
+[toolchain]
+channel = "1.99.1"

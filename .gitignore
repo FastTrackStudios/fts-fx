@@ -1,0 +1,13 @@
+target/
+target-*/
+**/target/
+dist/
+.DS_Store
+.direnv/
+.env
+scratch/
+# architect-ui's resolved checkout, linked by `just _architect-ui-link`
+features/ui/.architect-ui
+# FTS Mic's measured models: private (FastTrackStudios/mic-models), linked
+# or cloned here by hand; the plugin builds without them.
+/apps/plugins/mic/models
