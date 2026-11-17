@@ -220,21 +220,13 @@ opt-level = 3
 opt-level = 3
 [profile.dev.package.symphonia-core]
 opt-level = 3
-[profile.dev.package.symphonia-bundle-mp3]
-opt-level = 3
 [profile.dev.package.symphonia-codec-pcm]
 opt-level = 3
 [profile.dev.package.symphonia-codec-adpcm]
 opt-level = 3
-[profile.dev.package.symphonia-codec-aac]
-opt-level = 3
 [profile.dev.package.symphonia-format-riff]
 opt-level = 3
 [profile.dev.package.symphonia-format-mkv]
-opt-level = 3
-[profile.dev.package.zstd-safe]
-opt-level = 3
-[profile.dev.package.zstd-sys]
 opt-level = 3
 [profile.dev.package.blake3]
 opt-level = 3
@@ -246,23 +238,7 @@ opt-level = 3
 opt-level = 3
 [profile.dev.package.dsp-core]
 opt-level = 3
-[profile.dev.package.daw-audio-graph]
-opt-level = 3
-[profile.dev.package.audio]
-opt-level = 3
-[profile.dev.package.daw-standalone]
-opt-level = 3
-[profile.dev.package.neural-amp-modeler]
-opt-level = 3
-[profile.dev.package.valverig-nam]
-opt-level = 3
 [profile.dev.package.dsp]
-opt-level = 3
-[profile.dev.package.builtin]
-opt-level = 3
-[profile.dev.package.sampler]
-opt-level = 3
-[profile.dev.package.guitar]
 opt-level = 3
 [profile.dev.package.blitz-dom]
 opt-level = 3
@@ -299,8 +275,6 @@ opt-level = 3
 [profile.dev.package.skrifa]
 opt-level = 3
 [profile.dev.package.read-fonts]
-opt-level = 3
-[profile.dev.package.swash]
 opt-level = 3
 [profile.dev.package.fontique]
 opt-level = 3
