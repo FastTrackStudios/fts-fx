@@ -77,6 +77,7 @@ just check             # cargo check --workspace --all-targets
 just test              # cargo nextest run --workspace
 just wasm-check        # dsp-core, fts-audio-ui and dsp for wasm32-unknown-unknown
 just plugins-bundle [names] && just plugins-link   # .clap/.vst3 into target/bundled, linked into the plugin folders
+just install [names]   # or copied there, replacing older copies
 just plugins-verify    # every bundle loads
 ```
 
@@ -99,6 +100,43 @@ the fleet in `~/.cargo/config.toml`, never in this repo; keep keys stable
 Dependencies build at opt-level 1 in dev, with an allowlist back at 3 for
 audio-thread crates (`dsp-core`, `dsp` and the FFT crates). Extend the
 allowlist; never raise `package."*"`.
+
+## Installers and releases
+
+- **The suite is the Justfile's `fts_plugins` list.** `plugins-bundle`,
+  `install`, `plugins-pkg` and `plugins-package` all take it, and the
+  installers copy only those bundles out of `target/bundled`, never
+  "whatever is there". A new plugin goes into that list and
+  `bundler.toml`; nothing else lists plugins.
+- **FTS Mic is not in any installer, and no installer, release asset or
+  commit may carry its models.** They are private (`mic-models`, measured
+  from a commercial product) and `apps/plugins/mic/build.rs` builds the
+  default one into the binary when it finds them, so a `mic` bundle built
+  on a machine with the models IS private data. Shipping FTS Mic is the
+  owner's decision and needs a build that cannot see the models.
+- **macOS** (`scripts/macos/`, ported from Studio's
+  `deploy-macos-plugins.sh` / `deploy-macos-pkg.sh`): universal bundles,
+  Developer ID Application + hardened runtime, one `.pkg` signed with
+  Developer ID Installer, one component per plugin with Studio's stable ids
+  (`app.fasttrackstudio.plugin.<slug>`; never change them, they are what
+  upgrades in place). Signing identities live only in the build keychain
+  (`fts-build.keychain` on the release Mac); never commit an identity, a
+  certificate, a key or the notarization config.
+- **Notarizing submits to Apple**: only the release workflow and the owner
+  do it (`NOTARIZE=1 just plugins-pkg`, or `scripts/macos/notarize.sh
+  <pkg>`; `DRY_RUN=1` checks without submitting).
+- **Linux / Windows**: an archive with `install.sh` / `install.ps1`
+  (`scripts/package.sh`), built on GitHub-hosted runners.
+- **Releases** follow the fleet flow, copied from patchbay
+  (`scripts/release.sh`): CalVer `YY.M.MICRO` in `[workspace.package]
+  version`, change files in `.changes/`, `just release-prepare` →
+  `release-pr` → `release-merge` → `release-tag`. The tag runs
+  `.github/workflows/release.yml`, which builds the three installers and
+  publishes the Release with them. Never create a tag or a release by
+  hand, and never move a tag.
+- `release.yml`'s macOS job runs on the self-hosted release Mac. This repo
+  is public: that job must stay tag-only (no `pull_request` trigger on a
+  self-hosted job), and the guard runs the base commit's `release.sh`.
 
 ## Licence
 

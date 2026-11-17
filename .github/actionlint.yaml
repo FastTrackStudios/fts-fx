@@ -1,0 +1,4 @@
+# Labels of the self-hosted runners the workflows use (actionlint).
+self-hosted-runner:
+  labels:
+    - studio-release-mac
