@@ -437,24 +437,18 @@ anyhow = { workspace = true }
 anyrender_vello_cpu = {workspace = true}
 approx = {workspace = true}
 blitz-traits = {workspace = true}
-builtin = {workspace = true}
 bytemuck = { workspace = true, features = ["derive"] }
 criterion = { workspace = true }
-daw = {workspace = true, features = ["standalone", "vst3-host"]}
 dioxus = {workspace = true}
 dioxus-ssr = { workspace = true }
-dioxus-test = {workspace = true}
 dsp-core = {workspace = true, features = ["audio", "golden", "modulation"]}
 fts-audio-ui = {workspace = true, features = ["probe"]}
-fts-sample = {workspace = true, features = ["decode-compressed"]}
 hound = { workspace = true }
 naga = { workspace = true, features = ["wgsl-in"] }
 png = {version = "0.18"}
 pollster = { workspace = true }
 rustfft = { workspace = true }
 serde_json = {workspace = true}
-signal-import = {workspace = true}
-signal-plugin-host = {workspace = true, features = ["clap-host", "vst3-host"]}
 symphonia = { workspace = true, features = ["default", "wav", "pcm"] }
 test-that = { workspace = true, features = ["regex", "num-traits"] }
 tokio = {workspace = true, features = ["macros", "rt"]}
@@ -465,16 +459,6 @@ dsp = {path = ".", features = ["align", "reverb", "eq", "analyzer", "comp", "com
 blitz-traits = {workspace = true, optional = true}
 dioxus-native = {workspace = true, optional = true}
 nice-plug-dioxus = {workspace = true, optional = true}
-
-[[example]]
-name = "analyzer_wet_level"
-path = "analyzer/examples/wet_level.rs"
-required-features = ["analyzer"]
-
-[[example]]
-name = "bigsky_match"
-path = "analyzer/examples/bigsky_match.rs"
-required-features = ["analyzer"]
 
 [[example]]
 name = "bluebox_bench"
@@ -497,11 +481,6 @@ path = "eq/examples/callback_cost.rs"
 required-features = ["eq"]
 
 [[example]]
-name = "chart"
-path = "hits/examples/chart.rs"
-required-features = ["hits"]
-
-[[example]]
 name = "chorus_audition"
 path = "modulation/examples/chorus_audition.rs"
 required-features = ["modulation"]
@@ -510,11 +489,6 @@ required-features = ["modulation"]
 name = "chorus_measure"
 path = "modulation/examples/chorus_measure.rs"
 required-features = ["modulation"]
-
-[[example]]
-name = "comp_bundle_check"
-path = "analyzer/examples/comp_bundle_check.rs"
-required-features = ["analyzer"]
 
 [[example]]
 name = "comp_sheet"
@@ -530,11 +504,6 @@ required-features = ["comp"]
 name = "conformance_scan"
 path = "eq/examples/conformance_scan.rs"
 required-features = ["eq"]
-
-[[example]]
-name = "decay_calibration"
-path = "analyzer/examples/decay_calibration.rs"
-required-features = ["analyzer"]
 
 [[example]]
 name = "delay_family_sheet"
@@ -555,46 +524,6 @@ required-features = ["saturate"]
 name = "engine_sheet"
 path = "modulation/examples/engine_sheet.rs"
 required-features = ["modulation", "modulation-ui", "modulation-viz"]
-
-[[example]]
-name = "eq_auto_fit"
-path = "analyzer/examples/eq_auto_fit.rs"
-required-features = ["analyzer"]
-
-[[example]]
-name = "eq_auto_probe"
-path = "analyzer/examples/eq_auto_probe.rs"
-required-features = ["analyzer"]
-
-[[example]]
-name = "eq_bundle_check"
-path = "analyzer/examples/eq_bundle_check.rs"
-required-features = ["analyzer"]
-
-[[example]]
-name = "eq_detector_probe"
-path = "analyzer/examples/eq_detector_probe.rs"
-required-features = ["analyzer"]
-
-[[example]]
-name = "eq_dyn_probe"
-path = "analyzer/examples/eq_dyn_probe.rs"
-required-features = ["analyzer"]
-
-[[example]]
-name = "eq_match"
-path = "analyzer/examples/eq_match.rs"
-required-features = ["analyzer"]
-
-[[example]]
-name = "eq_spectral_probe"
-path = "analyzer/examples/eq_spectral_probe.rs"
-required-features = ["analyzer"]
-
-[[example]]
-name = "eq_sweep"
-path = "analyzer/examples/eq_sweep.rs"
-required-features = ["analyzer"]
 
 [[example]]
 name = "equalize"
@@ -632,21 +561,6 @@ path = "pitch/examples/pitch_quality.rs"
 required-features = ["pitch"]
 
 [[example]]
-name = "plugin_params"
-path = "analyzer/examples/plugin_params.rs"
-required-features = ["analyzer"]
-
-[[example]]
-name = "preset_sweep"
-path = "analyzer/examples/preset_sweep.rs"
-required-features = ["analyzer"]
-
-[[example]]
-name = "proq_params"
-path = "analyzer/examples/proq_params.rs"
-required-features = ["analyzer"]
-
-[[example]]
 name = "pultec"
 path = "eq/examples/pultec.rs"
 required-features = ["eq"]
@@ -660,11 +574,6 @@ required-features = ["comp"]
 name = "reverb_family_sheet"
 path = "reverb/examples/family_sheet.rs"
 required-features = ["reverb", "reverb-ui", "reverb-viz"]
-
-[[example]]
-name = "reverb_match"
-path = "analyzer/examples/reverb_match.rs"
-required-features = ["analyzer"]
 
 [[example]]
 name = "reverb_wet_level"
