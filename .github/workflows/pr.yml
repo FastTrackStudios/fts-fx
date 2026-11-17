@@ -1,0 +1,28 @@
+# The free checks a PR gets: formatting and a lockfile in step with the
+# manifests. Compiles nothing; the builds (`just check`, `just test`,
+# `just wasm-check`) are run locally until this repo has runners.
+name: PR
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+concurrency:
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  pr-checks:
+    name: PR checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Rust 1.99.1
+        uses: dtolnay/rust-toolchain@1.99.1
+        with:
+          components: rustfmt
+      - name: fmt
+        run: cargo fmt --all --check
+      - name: Manifests + lockfile
+        if: ${{ !cancelled() }}
+        run: cargo metadata --locked --format-version 1 > /dev/null
