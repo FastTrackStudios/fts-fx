@@ -119,6 +119,10 @@ jobs:
         with:
           ref: ${{ github.sha }}
           clean: false
+      # The runner's service PATH has nix and Homebrew but not rustup's bin:
+      # v26.11.0's build stopped here with `rustup: command not found`.
+      - name: rustup and cargo on PATH
+        run: echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
       - name: Both Mac targets (bundle-universal builds arm64 and x86_64)
         run: rustup target add aarch64-apple-darwin x86_64-apple-darwin
       - name: Build, sign, package, notarize, staple
