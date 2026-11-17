@@ -1,6 +1,6 @@
 //! Builds the default mic (LD-47K) into the plugin, so FTS Mic works with
-//! no models installed. The model files are private (measured from a
-//! commercial plugin) and live outside this repository: the build takes
+//! no models installed. The model files are private and live outside
+//! this repository: the build takes
 //! them from the first of `$FTS_MIC_MODELS`, `~/.local/share/fts/mic-models`,
 //! `models/` here (linked by `just assets` from the private mic-models repo,
 //! see assets.txt) and a `mic-models` checkout beside this one that has them. Without any,
