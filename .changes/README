@@ -1,0 +1,11 @@
+Change files: release intent, one per change, in cargo-rail's format
+(front matter `"<crate>" = "<none|patch|minor|major>"`, then the note).
+
+The files here came from Studio (studio#510): the notes of changes to the
+crates that moved, not yet in a release when they left. cargo-rail is not
+set up in this repo yet; until it is, write a file by hand in the same
+format. The note is for the user: start with a verb (Added / Fixed /
+Improved / Changed / Removed).
+
+This file has no .md extension on purpose: cargo-rail reads every .md
+here as a change file.

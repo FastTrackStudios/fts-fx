@@ -70,7 +70,26 @@ with the root one.
 **Logging**: never `println!` / `eprintln!` / `dbg!` in library code; use
 `tracing` with structured fields.
 
-## Build
+## Build and test
+
+```bash
+just check             # cargo check --workspace --all-targets
+just test              # cargo nextest run --workspace
+just wasm-check        # dsp-core, fts-audio-ui and dsp for wasm32-unknown-unknown
+just plugins-bundle [names] && just plugins-link   # .clap/.vst3 into target/bundled, linked into the plugin folders
+just plugins-verify    # every bundle loads
+```
+
+A PR gets one free job, `PR checks` (`.github/workflows/pr.yml`: fmt and
+the lockfile; it compiles nothing). Run the three recipes above before
+pushing: nothing else does.
+
+Studio pins this repo by `rev` (`studio:Cargo.toml`). A change Studio
+needs lands here first, then Studio moves its rev. Do not rename or remove
+a crate, a cargo feature or public API that Studio uses without the
+matching Studio PR: `builtin`, `daw-standalone`, the rigs and the apps
+link `dsp`, `dsp-core`, `fts-audio-ui`, `plugin-core` and the plugin
+crates.
 
 Rust 1.99.1 (`rust-toolchain.toml`). kache is the rustc wrapper, set by
 the fleet in `~/.cargo/config.toml`, never in this repo; keep keys stable
@@ -89,4 +108,6 @@ allowlist; never raise `package."*"`.
 ## Process
 
 Branch from `origin/main`, open a PR into `main` with a conventional
-title. A lone PR squash-merges.
+title. A lone PR squash-merges; an import that carries history merges with
+a merge commit. A change a user would notice adds a change file
+(`.changes/README`).
