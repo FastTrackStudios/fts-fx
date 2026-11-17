@@ -36,7 +36,8 @@ just check             # cargo check --workspace --all-targets
 just test              # cargo nextest run --workspace
 just wasm-check        # the engines and painted UI for wasm32-unknown-unknown
 just plugins-bundle    # .clap + .vst3 into target/bundled (universal on macOS)
-just plugins-link      # link them into this machine's plugin folders
+just install           # copy them into your plugin folders (below)
+just plugins-link      # or link them there, so a rebuild is live
 just plugins-verify    # dlopen every bundle and walk its factory
 ```
 
@@ -44,6 +45,64 @@ FTS Mic builds its default mic in when it finds the private models
 (`$FTS_MIC_MODELS`, `~/.local/share/fts/mic-models`, or
 `apps/plugins/mic/models`); without them the plugin builds and needs the
 models installed (`just mic-models-install`).
+
+## Installing the plugins
+
+The installers hold fourteen plugins, each as CLAP and VST3: FTS EQ, Comp,
+Limiter, Gate, Level, Meter, Reverb, Delay, Modulation, Saturate, Pitch,
+Tune, Unison and Trigger. FTS Mic is not in them (see below).
+
+### From a release
+
+Download from [Releases](https://github.com/FastTrackStudios/fts-fx/releases):
+
+| Platform | File | Installs into |
+| --- | --- | --- |
+| macOS 11+, Apple silicon and Intel | `FTS-Plugins-<version>-macos.pkg` (signed, notarized) | `/Library/Audio/Plug-Ins/{CLAP,VST3}` for every user, or `~/Library/Audio/Plug-Ins/{CLAP,VST3}` if you choose "just me" |
+| Linux x86-64 (AVX2) | `fts-plugins-<version>-linux-x86_64.tar.gz` | `./install.sh`: `~/.clap`, `~/.vst3`; `sudo ./install.sh --system`: `/usr/lib/clap`, `/usr/lib/vst3` |
+| Windows x64 (AVX2) | `fts-plugins-<version>-windows-x86_64.zip` | `install.ps1`: `%LOCALAPPDATA%\Programs\Common\{CLAP,VST3}`; `-System` (as administrator): `%COMMONPROGRAMFILES%\{CLAP,VST3}` |
+
+`SHA256SUMS` beside them lists every file's checksum. A newer installer
+replaces the plugins an older one installed; quit your host first, then
+rescan its plugins. On macOS, Customize picks plugins one by one; unattended:
+
+```bash
+sudo installer -pkg FTS-Plugins-<version>-macos.pkg -target /                    # every user
+installer -pkg FTS-Plugins-<version>-macos.pkg -target CurrentUserHomeDirectory  # just you, no password
+```
+
+The x86-64 builds need a CPU with AVX2 (Intel Haswell / AMD Excavator, 2013,
+and later).
+
+### From source
+
+```bash
+just plugins-bundle             # every plugin, .clap + .vst3, into target/bundled
+just install                    # copy them into your plugin folders, replacing older copies
+just install "eq comp"          # or some of them (`just plugins-bundle "eq comp"` first)
+just install "eq" --dry-run     # say what would go where
+```
+
+`just install` uses the per-user folders: `~/Library/Audio/Plug-Ins/{CLAP,VST3}`
+on macOS, `~/.clap` and `~/.vst3` on Linux. On macOS the bundles are
+universal and need both Rust targets (`rustup target add x86_64-apple-darwin`).
+The builds are not signed with a Developer ID; that is fine on the Mac that
+built them.
+
+The installers themselves: `just plugins-pkg` (macOS: signs with the
+Developer ID identities in the build keychain, `PKG_UNSIGNED=1` without
+them), `just plugins-package` (Linux, Windows). Releases are cut with
+`just release-*` (`scripts/release.sh`); the tag builds and attaches the
+installers (`.github/workflows/release.yml`).
+
+### FTS Mic
+
+FTS Mic models a microphone from measured models that are private (they
+come from a commercial product), so no public installer carries it, and the
+installers are built from a list that leaves it out rather than from
+whatever is in `target/bundled`. With access to the private
+`mic-models` repository: `just mic-models-install`, then
+`just plugins-bundle mic && just install mic`.
 
 ## Where it came from
 

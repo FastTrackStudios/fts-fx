@@ -191,23 +191,65 @@ mic-models-install:
         git clone git@github.com:FastTrackStudios/mic-models.git "$dest"
     fi
 
-# Package the plugin bundles as a single release tarball in dist/
-# (fts-plugins-v<version>-<platform>.tar.gz + SHA256SUMS entry). The macOS
-# release artifact is NOT this: Apple only accepts zip/pkg/dmg for
-# notarization, and the signing script is still in Studio
-# (studio:apps/session/desktop/ios/deploy-macos-plugins.sh), not ported here.
-plugins-package: plugins-bundle
+# Install the built plugins for the current user, replacing older copies
+# (scripts/install.sh): macOS ~/Library/Audio/Plug-Ins/{CLAP,VST3}, Linux
+# ~/.clap and ~/.vst3. Copies, unlike plugins-link; run `just plugins-bundle`
+# first. Pass a subset as for plugins-bundle, or flags to install.sh:
+#   just install                 # the suite
+#   just install "eq comp"
+#   just install "eq comp" --dry-run
+install plugins=fts_plugins *flags:
     #!/usr/bin/env bash
     set -euo pipefail
-    version="$(cargo pkgid -p eq-plugin | sed 's/.*[#@]//')"
-    case "$(uname)-$(uname -m)" in
-        Darwin-*)        plat=macos ;;
-        Linux-x86_64)    plat=x86_64-linux ;;
-        Linux-aarch64)   plat=aarch64-linux ;;
-        *) echo "unsupported platform: $(uname)-$(uname -m)" >&2; exit 1 ;;
-    esac
-    mkdir -p dist
-    tarball="fts-plugins-v$version-$plat.tar.gz"
-    tar -czf "dist/$tarball" -C target/bundled .
-    (cd dist && sha256sum "$tarball" >> SHA256SUMS 2>/dev/null || sha256sum "$tarball" > SHA256SUMS)
-    echo "packaged: dist/$tarball"
+    names=(); while IFS= read -r n; do names+=("$n"); done < <(bash scripts/bundles.sh {{plugins}})
+    bash scripts/install.sh --from target/bundled {{flags}} "${names[@]}"
+
+# The macOS installer: dist/FTS-Plugins-<version>-macos.pkg, the suite's
+# universal bundles Developer-ID-signed, the pkg signed with the Developer
+# ID Installer identity (scripts/macos/pkg.sh). Not notarized unless
+# NOTARIZE=1. Local structure test without the identities: PKG_UNSIGNED=1.
+plugins-pkg: plugins-bundle
+    bash scripts/macos/pkg.sh {{fts_plugins}}
+
+# The Linux / Windows release archive: dist/fts-plugins-<version>-<platform>
+# .tar.gz or .zip with the suite's bundles and install.sh / install.ps1
+# (scripts/package.sh), plus its dist/SHA256SUMS line.
+plugins-package: plugins-bundle
+    bash scripts/package.sh {{fts_plugins}}
+
+# ── Releases (scripts/release.sh; the fleet release flow, as patchbay's) ──
+# A release PR bumps the CalVer version and writes CHANGELOG.md from
+# .changes/; the tag on its merge commit starts release.yml, which builds
+# the installers and publishes the GitHub Release with them.
+
+# What a release would ship now: the next version, the draft notes. Reads only.
+release-plan *REF:
+    bash scripts/release.sh plan {{REF}}
+
+# Cut `release/pending` from origin/main: version + CHANGELOG.md section from
+# .changes/ (deleting them), one commit `chore(release): v<next>`.
+release-prepare *ARGS:
+    bash scripts/release.sh prepare {{ARGS}}
+
+# On release/pending: push it and open its PR.
+release-pr:
+    bash scripts/release.sh pr
+
+# Re-run the release guard against the current base, then squash-merge the
+# release PR.
+release-merge:
+    bash scripts/release.sh merge
+
+# After the release PR merged: tag v<version> on its merge commit. THE TAG
+# SHIPS (release.yml). Push as a person or the fts-forge App, not a workflow
+# token (that starts no workflow).
+release-tag *ARGS:
+    bash scripts/release.sh tag {{ARGS}}
+
+# Hotfix while main can't ship (see scripts/release.sh).
+release-hotfix +COMMITS:
+    bash scripts/release.sh hotfix {{COMMITS}}
+
+# One version's section of CHANGELOG.md (default: the current version).
+release-notes *ARGS:
+    @bash scripts/release.sh notes {{ARGS}}
