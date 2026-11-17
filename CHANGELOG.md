@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
+## [26.11.1] - 2026-11-17
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* The signing Mac's job finds rustup (#5)
+- *(release)* The Linux job installs the GTK and WebKit headers (#6)
+
 ## [26.11.0] - 2026-11-17
 
 ### Added
