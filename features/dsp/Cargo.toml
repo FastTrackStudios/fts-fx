@@ -230,6 +230,8 @@ modulation-native = [
     "dep:nice-plug",
     "dep:nice-plug-dioxus",
     "dep:parking_lot",
+    # ui/params.rs builds its tempo-sync params from dsp_core::time::params.
+    "dsp-core/params",
 ]
 modulation-profiles = ["modulation"]
 modulation-ui = [
