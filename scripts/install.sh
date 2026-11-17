@@ -45,11 +45,11 @@ while [ $# -gt 0 ]; do
 done
 
 if [ -z "$from" ]; then
-    if compgen -G "$here/*.clap" >/dev/null || compgen -G "$here/*.vst3" >/dev/null; then
-        from="$here"
-    else
-        from="$(cd "$here/.." && pwd)/target/bundled"
-    fi
+    # A glob loop, not compgen: non-interactive bash builds (NixOS's) lack it.
+    from="$(cd "$here/.." && pwd)/target/bundled"
+    for b in "$here"/*.clap "$here"/*.vst3; do
+        if [ -e "$b" ]; then from="$here"; break; fi
+    done
 fi
 [ -d "$from" ] || { echo "install.sh: no bundles at $from (run 'just plugins-bundle' first)" >&2; exit 1; }
 
