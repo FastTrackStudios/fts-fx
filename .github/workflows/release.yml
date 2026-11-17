@@ -195,6 +195,9 @@ jobs:
           ref: ${{ github.sha }}
       - name: Rust 1.99.1
         uses: dtolnay/rust-toolchain@1.99.1
+      # aws-lc-sys (TLS, in the dependency graph) assembles with NASM on
+      # MSVC; CMake is already on the image.
+      - uses: ilammy/setup-nasm@v1
       - uses: taiki-e/install-action@v2
         with:
           tool: just
