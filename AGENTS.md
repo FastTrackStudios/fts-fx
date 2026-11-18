@@ -72,6 +72,16 @@ with the root one.
 
 ## Build and test
 
+Every build runs in the fleet's devenv shell: `devenv shell -- <command>`, or
+direnv through `.envrc` (`eval "$(devenv direnvrc)"` then `use devenv`; a bare
+`use devenv` fails silently in an agent shell and leaves the host's rustc).
+devenv-fleet's `rust` module (imported in `devenv.yaml`) is the toolchain:
+check it with `devenv shell -- fleet-doctor` (the rustc store path, the
+wrapper, the linker; it fails off the pin). `devenv.nix` adds what the
+plugins link. Move the pins only with devenv-fleet's
+`scripts/fleet-pins --write .`, never by hand; never set or unset
+`RUSTC_WRAPPER` or `CARGO_HOME`.
+
 ```bash
 just check             # cargo check --workspace --all-targets
 just test              # cargo nextest run --workspace
@@ -92,8 +102,11 @@ matching Studio PR: `builtin`, `daw-standalone`, the rigs and the apps
 link `dsp`, `dsp-core`, `fts-audio-ui`, `plugin-core` and the plugin
 crates.
 
-Rust 1.99.1 (`rust-toolchain.toml`). kache is the rustc wrapper, set by
-the fleet in `~/.cargo/config.toml`, never in this repo; keep keys stable
+Rust 1.99.1: the devenv shell's (devenv-fleet), and `rust-toolchain.toml`
+for rustup outside it. kache is the rustc wrapper, the host's (the fleet's
+`~/.cargo/config.toml`, or the `rust` module exporting it from PATH), never
+set in this repo; keep `.cargo/config.toml`'s rustflags tables as they are
+(the fleet's, flag for flag) and keep keys stable
 (no `env!("CARGO_MANIFEST_DIR")` outside tests, target dirs named
 `target`).
 
