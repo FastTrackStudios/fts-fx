@@ -169,8 +169,12 @@ jobs:
           done
           missing=""
           for tool in cargo just lipo cc; do command -v "$tool" >/dev/null || missing="$missing $tool"; done
-          for tool in codesign security pkgbuild productbuild pkgutil xcrun spctl; do
+          for tool in codesign security pkgbuild productbuild xcrun; do
             [ -x "/usr/bin/$tool" ] || missing="$missing /usr/bin/$tool"
+          done
+          # pkgutil and spctl live in /usr/sbin (scripts/macos/ have it on PATH).
+          for tool in pkgutil spctl; do
+            [ -x "/usr/sbin/$tool" ] || missing="$missing /usr/sbin/$tool"
           done
           [ -z "$missing" ] || { echo "::error::missing:$missing"; exit 1; }
           env -u DEVELOPER_DIR -u SDKROOT /usr/bin/xcrun --find notarytool
