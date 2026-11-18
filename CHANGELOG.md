@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented in this file.
 
+## [26.11.2] - 2026-11-18
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Every tool the signing Mac needs, checked first; no Windows build for now
+- *(release)* Both installers build in the devenv shell, Linux on THEBATTLESHIP
+
+### 💼 Other
+
+- The fleet devenv shell (devenv-fleet c4ddec85, rust 1.99.1)
+
 ## [26.11.1] - 2026-11-17
 
 ### ⚙️ Miscellaneous Tasks
