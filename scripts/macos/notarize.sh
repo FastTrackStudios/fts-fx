@@ -11,6 +11,15 @@
 # Waits for Apple (minutes; occasionally much longer).
 set -euo pipefail
 
+# Apple's signing, packaging and notary tools, with Apple's own environment.
+# Inside the devenv shell (where release.yml runs this) DEVELOPER_DIR and
+# SDKROOT name the nix apple-sdk (14.4) and `xcrun` is nixpkgs' xcbuild shim,
+# not Apple's: signing and notarizing are not to depend on either. Nothing
+# here compiles (the bundles are built before this runs), so drop both and
+# put /usr/bin first: codesign, security, pkgbuild, productbuild, pkgutil, xcrun, lipo.
+unset DEVELOPER_DIR SDKROOT
+export PATH="/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
+
 pkg="${1:?usage: notarize.sh PKG}"
 [ -f "$pkg" ] || { echo "notarize.sh: no file $pkg" >&2; exit 1; }
 

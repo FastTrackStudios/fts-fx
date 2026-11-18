@@ -1,0 +1,42 @@
+# The devenv CLI at exactly 2.4.0 (devenv.yaml's require_version), on PATH for
+# the steps after it, with nix beside it. Copied from FastTrackStudios/studio's
+# .github/actions/devenv: cachix's v2.4.0 tag (fetched over git), built by nix.
+# A host that already has this version keeps it (THEBATTLESHIP's pool, the
+# release Mac); anything else builds the tag's CLI.
+#
+# One change from Studio's copy: the directories it finds devenv and nix in go
+# to GITHUB_PATH too, so a runner service with a bare PATH (the release Mac's,
+# which has no nix profile on it) can run `devenv shell -- …` in later steps.
+#
+# Called by release.yml's macOS and Linux jobs before the first step that
+# enters the devenv shell.
+
+name: devenv CLI
+description: devenv 2.4.0 on PATH, from cachix's v2.4.0 tag unless the host has it.
+
+runs:
+  using: composite
+  steps:
+    - name: devenv 2.4.0 on PATH
+      shell: bash
+      run: |
+        set -euo pipefail
+        # nix-darwin and single-user installs keep nix outside a runner's PATH.
+        for d in /nix/var/nix/profiles/default/bin /run/current-system/sw/bin \
+                 "$HOME/.nix-profile/bin" "/etc/profiles/per-user/$USER/bin"; do
+          if [ -d "$d" ]; then
+            PATH="$PATH:$d"
+            echo "$d" >> "$GITHUB_PATH"
+          fi
+        done
+        command -v nix >/dev/null || { echo "::error::no nix on this runner"; exit 1; }
+        if command -v devenv >/dev/null && [[ "$(devenv --version)" == "devenv 2.4.0 "* ]]; then
+          dirname "$(command -v devenv)" >> "$GITHUB_PATH"
+          devenv --version
+          exit 0
+        fi
+        # Over git, not `github:`: a `github:` ref is resolved through the
+        # GitHub API with no token, which rate-limits a shared runner.
+        out="$(nix build --accept-flake-config --no-link --print-out-paths 'git+https://github.com/cachix/devenv?ref=refs/tags/v2.4.0&shallow=1#devenv')"
+        echo "$out/bin" >> "$GITHUB_PATH"
+        "$out/bin/devenv" --version

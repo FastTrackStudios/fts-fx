@@ -72,6 +72,16 @@ with the root one.
 
 ## Build and test
 
+Every build runs in the fleet's devenv shell: `devenv shell -- <command>`, or
+direnv through `.envrc` (`eval "$(devenv direnvrc)"` then `use devenv`; a bare
+`use devenv` fails silently in an agent shell and leaves the host's rustc).
+devenv-fleet's `rust` module (imported in `devenv.yaml`) is the toolchain:
+check it with `devenv shell -- fleet-doctor` (the rustc store path, the
+wrapper, the linker; it fails off the pin). `devenv.nix` adds what the
+plugins link. Move the pins only with devenv-fleet's
+`scripts/fleet-pins --write .`, never by hand; never set or unset
+`RUSTC_WRAPPER` or `CARGO_HOME`.
+
 ```bash
 just check             # cargo check --workspace --all-targets
 just test              # cargo nextest run --workspace
@@ -92,8 +102,11 @@ matching Studio PR: `builtin`, `daw-standalone`, the rigs and the apps
 link `dsp`, `dsp-core`, `fts-audio-ui`, `plugin-core` and the plugin
 crates.
 
-Rust 1.99.1 (`rust-toolchain.toml`). kache is the rustc wrapper, set by
-the fleet in `~/.cargo/config.toml`, never in this repo; keep keys stable
+Rust 1.99.1: the devenv shell's (devenv-fleet), and `rust-toolchain.toml`
+for rustup outside it. kache is the rustc wrapper, the host's (the fleet's
+`~/.cargo/config.toml`, or the `rust` module exporting it from PATH), never
+set in this repo; keep `.cargo/config.toml`'s rustflags tables as they are
+(the fleet's, flag for flag) and keep keys stable
 (no `env!("CARGO_MANIFEST_DIR")` outside tests, target dirs named
 `target`).
 
@@ -126,7 +139,9 @@ allowlist; never raise `package."*"`.
   do it (`NOTARIZE=1 just plugins-pkg`, or `scripts/macos/notarize.sh
   <pkg>`; `DRY_RUN=1` checks without submitting).
 - **Linux / Windows**: an archive with `install.sh` / `install.ps1`
-  (`scripts/package.sh`), built on GitHub-hosted runners.
+  (`scripts/package.sh`). The Linux release builds on THEBATTLESHIP's
+  self-hosted pool (NixOS, no apt) inside the devenv shell, so a library a
+  plugin newly links on Linux goes into `devenv.nix`, or the release breaks.
 - **Releases** follow the fleet flow, copied from patchbay
   (`scripts/release.sh`): CalVer `YY.M.MICRO` in `[workspace.package]
   version`, change files in `.changes/`, `just release-prepare` →
@@ -134,9 +149,13 @@ allowlist; never raise `package."*"`.
   `.github/workflows/release.yml`, which builds the three installers and
   publishes the Release with them. Never create a tag or a release by
   hand, and never move a tag.
-- `release.yml`'s macOS job runs on the self-hosted release Mac. This repo
-  is public: that job must stay tag-only (no `pull_request` trigger on a
-  self-hosted job), and the guard runs the base commit's `release.sh`.
+- `release.yml`'s build jobs are self-hosted (macOS on the release Mac,
+  Linux on THEBATTLESHIP) and build through `devenv shell -- …`. This repo
+  is public: they must stay tag-only (a `v*` tag of this repo, or a
+  maintainer's dispatch on one; `needs: tag-guard` plus the same `if:`; no
+  `pull_request` trigger on a self-hosted job), and the guard runs the base
+  commit's `release.sh`. `scripts/macos/` run Apple's tools from /usr/bin
+  without the shell's nix SDK (DEVELOPER_DIR, SDKROOT); keep it that way.
 
 ## Licence
 

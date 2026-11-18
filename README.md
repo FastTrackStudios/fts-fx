@@ -29,9 +29,18 @@ xtask/plugins              the bundler (wraps nice-plug-xtask)
 
 ## Build
 
-Rust 1.99.1 (`rust-toolchain.toml`).
+Builds go through the fleet's devenv shell (`devenv.yaml`, `devenv.nix`):
+Rust 1.99.1 at the same nix store path as every FastTrackStudios repo (so
+kache shares their builds), both Mac targets for the universal bundles, mold,
+and on Linux every library the plugins link. Enter it with `devenv shell`, or
+let direnv do it (`direnv allow`; `.envrc` loads it), or run one command with
+`devenv shell -- <command>`. `devenv shell -- fleet-doctor` prints the rustc
+path, the compiler wrapper (kache) and the linker, and fails if rustc is off
+the fleet pin. `rust-toolchain.toml` pins the same 1.99.1 for rustup, outside
+the shell.
 
 ```bash
+devenv shell           # then:
 just check             # cargo check --workspace --all-targets
 just test              # cargo nextest run --workspace
 just wasm-check        # the engines and painted UI for wasm32-unknown-unknown
@@ -84,7 +93,8 @@ just install "eq" --dry-run     # say what would go where
 
 `just install` uses the per-user folders: `~/Library/Audio/Plug-Ins/{CLAP,VST3}`
 on macOS, `~/.clap` and `~/.vst3` on Linux. On macOS the bundles are
-universal and need both Rust targets (`rustup target add x86_64-apple-darwin`).
+universal: the devenv shell has both Rust targets (outside it,
+`rustup target add x86_64-apple-darwin`).
 The builds are not signed with a Developer ID; that is fine on the Mac that
 built them.
 
