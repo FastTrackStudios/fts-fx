@@ -2422,7 +2422,7 @@ dependencies = [
 
 [[package]]
 name = "comp-plugin"
-version = "26.11.2"
+version = "26.11.3"
 dependencies = [
  "dsp",
  "nice-plug",
@@ -3178,7 +3178,7 @@ source = "git+https://www.github.com/FastTrackStudios/blitz?rev=db5b7ef11e4df19e
 
 [[package]]
 name = "delay-plugin"
-version = "26.11.2"
+version = "26.11.3"
 dependencies = [
  "dsp",
  "dsp-core",
@@ -4178,7 +4178,7 @@ checksum = "d8b14ccef22fc6f5a8f4d7d768562a182c04ce9a3b3157b91390b52ddfdf1a76"
 
 [[package]]
 name = "dsp"
-version = "26.11.2"
+version = "26.11.3"
 dependencies = [
  "anyhow",
  "anyrender",
@@ -4237,7 +4237,7 @@ dependencies = [
 
 [[package]]
 name = "dsp-core"
-version = "26.11.2"
+version = "26.11.3"
 dependencies = [
  "atomic_float",
  "dsp-core",
@@ -4533,7 +4533,7 @@ dependencies = [
 
 [[package]]
 name = "eq-plugin"
-version = "26.11.2"
+version = "26.11.3"
 dependencies = [
  "dsp",
  "dsp-core",
@@ -4543,7 +4543,7 @@ dependencies = [
 
 [[package]]
 name = "eq-standalone"
-version = "26.11.2"
+version = "26.11.3"
 dependencies = [
  "anyhow",
  "atomic_float",
@@ -5168,7 +5168,7 @@ checksum = "42703706b716c37f96a77aea830392ad231f44c9e9a67872fa5548707e11b11c"
 
 [[package]]
 name = "fts-audio-ui"
-version = "26.11.2"
+version = "26.11.3"
 dependencies = [
  "anyrender",
  "anyrender_vello",
@@ -5195,7 +5195,7 @@ dependencies = [
 
 [[package]]
 name = "fts-plugin-xtask"
-version = "26.11.2"
+version = "26.11.3"
 dependencies = [
  "nice-plug-xtask",
 ]
@@ -5320,7 +5320,7 @@ dependencies = [
 
 [[package]]
 name = "gate-plugin"
-version = "26.11.2"
+version = "26.11.3"
 dependencies = [
  "dsp",
  "nice-plug",
@@ -7173,7 +7173,7 @@ checksum = "7a79a3332a6609480d7d0c9eab957bca6b455b91bb84e66d19f5ff66294b85b8"
 
 [[package]]
 name = "level-plugin"
-version = "26.11.2"
+version = "26.11.3"
 dependencies = [
  "dsp",
  "nice-plug",
@@ -7392,7 +7392,7 @@ dependencies = [
 
 [[package]]
 name = "limiter-plugin"
-version = "26.11.2"
+version = "26.11.3"
 dependencies = [
  "dsp",
  "nice-plug",
@@ -7989,7 +7989,7 @@ dependencies = [
 
 [[package]]
 name = "meter-plugin"
-version = "26.11.2"
+version = "26.11.3"
 dependencies = [
  "dioxus",
  "dsp-core",
@@ -8001,7 +8001,7 @@ dependencies = [
 
 [[package]]
 name = "mic-plugin"
-version = "26.11.2"
+version = "26.11.3"
 dependencies = [
  "crossbeam-channel",
  "dsp",
@@ -8072,7 +8072,7 @@ dependencies = [
 
 [[package]]
 name = "modulation-plugin"
-version = "26.11.2"
+version = "26.11.3"
 dependencies = [
  "atomic_float",
  "dsp",
@@ -9869,7 +9869,7 @@ dependencies = [
 
 [[package]]
 name = "pitch-plugin"
-version = "26.11.2"
+version = "26.11.3"
 dependencies = [
  "dsp",
  "dsp-core",
@@ -9974,7 +9974,7 @@ dependencies = [
 
 [[package]]
 name = "plugin-core"
-version = "26.11.2"
+version = "26.11.3"
 dependencies = [
  "architect-ui",
  "atomic_float",
@@ -10130,7 +10130,7 @@ checksum = "925383efa346730478fb4838dbe9137d2a47675ad789c546d150a6e1dd4ab31c"
 
 [[package]]
 name = "preset-browser"
-version = "26.11.2"
+version = "26.11.3"
 dependencies = [
  "dioxus",
  "fts-audio-ui",
@@ -10919,7 +10919,7 @@ dependencies = [
 
 [[package]]
 name = "reverb-plugin"
-version = "26.11.2"
+version = "26.11.3"
 dependencies = [
  "crossbeam-channel",
  "dsp",
@@ -11264,7 +11264,7 @@ dependencies = [
 
 [[package]]
 name = "saturate-plugin"
-version = "26.11.2"
+version = "26.11.3"
 dependencies = [
  "atomic_float",
  "dsp",
@@ -13962,7 +13962,7 @@ checksum = "009994f150cc0cd50ff54917d5bc8bffe8cad10ca10d81c34da2ec421ae61782"
 
 [[package]]
 name = "trigger-plugin"
-version = "26.11.2"
+version = "26.11.3"
 dependencies = [
  "dsp",
  "nice-plug",
@@ -13986,7 +13986,7 @@ dependencies = [
 
 [[package]]
 name = "tune-plugin"
-version = "26.11.2"
+version = "26.11.3"
 dependencies = [
  "dsp",
  "dsp-core",
@@ -14136,7 +14136,7 @@ checksum = "ebc1c04c71510c7f702b52b7c350734c9ff1295c464a03335b00bb84fc54f853"
 
 [[package]]
 name = "unison-plugin"
-version = "26.11.2"
+version = "26.11.3"
 dependencies = [
  "dsp",
  "dsp-core",
