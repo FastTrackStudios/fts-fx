@@ -956,7 +956,6 @@ publish_release() { # [tag]
         echo
         echo "- **macOS** (Apple silicon and Intel): \`FTS-Plugins-$v-macos.pkg\`, signed and notarized. Installs CLAP and VST3 into \`/Library/Audio/Plug-Ins\` (all users) or \`~/Library/Audio/Plug-Ins\` (just you)."
         echo "- **Linux** (x86-64-v3): \`fts-plugins-$v-linux-x86_64.tar.gz\`; unpack and run \`./install.sh\` (\`~/.clap\`, \`~/.vst3\`; \`--system\` for \`/usr/lib\`)."
-        echo "- **Windows** (x64, AVX2): \`fts-plugins-$v-windows-x86_64.zip\`; unpack and run \`install.ps1\` (\`%LOCALAPPDATA%\\Programs\\Common\\{CLAP,VST3}\`; \`-System\` for \`%COMMONPROGRAMFILES%\`)."
         echo "- Checksums: \`SHA256SUMS\`."
         echo
         echo "---"

@@ -60,7 +60,6 @@ Download from [Releases](https://github.com/FastTrackStudios/fts-fx/releases):
 | --- | --- | --- |
 | macOS, Apple silicon and Intel | `FTS-Plugins-<version>-macos.pkg` (signed, notarized) | `/Library/Audio/Plug-Ins/{CLAP,VST3}` for every user, or `~/Library/Audio/Plug-Ins/{CLAP,VST3}` if you choose "just me" |
 | Linux x86-64 (AVX2) | `fts-plugins-<version>-linux-x86_64.tar.gz` | `./install.sh`: `~/.clap`, `~/.vst3`; `sudo ./install.sh --system`: `/usr/lib/clap`, `/usr/lib/vst3` |
-| Windows x64 (AVX2) | `fts-plugins-<version>-windows-x86_64.zip` | `install.ps1`: `%LOCALAPPDATA%\Programs\Common\{CLAP,VST3}`; `-System` (as administrator): `%COMMONPROGRAMFILES%\{CLAP,VST3}` |
 
 `SHA256SUMS` beside them lists every file's checksum. A newer installer
 replaces the plugins an older one installed; quit your host first, then
@@ -91,7 +90,8 @@ built them.
 
 The installers themselves: `just plugins-pkg` (macOS: signs with the
 Developer ID identities in the build keychain, `PKG_UNSIGNED=1` without
-them), `just plugins-package` (Linux, Windows). Releases are cut with
+them), `just plugins-package` (Linux; it also works on Windows by hand, but
+releases carry no Windows build for now). Releases are cut with
 `just release-*` (`scripts/release.sh`); the tag builds and attaches the
 installers (`.github/workflows/release.yml`).
 
