@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [26.11.3] - 2026-11-18
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Look for pkgutil and spctl in /usr/sbin
+
 ## [26.11.2] - 2026-11-18
 
 ### ⚙️ Miscellaneous Tasks
