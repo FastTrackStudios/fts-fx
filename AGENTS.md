@@ -139,7 +139,9 @@ allowlist; never raise `package."*"`.
   do it (`NOTARIZE=1 just plugins-pkg`, or `scripts/macos/notarize.sh
   <pkg>`; `DRY_RUN=1` checks without submitting).
 - **Linux / Windows**: an archive with `install.sh` / `install.ps1`
-  (`scripts/package.sh`), built on GitHub-hosted runners.
+  (`scripts/package.sh`). The Linux release builds on THEBATTLESHIP's
+  self-hosted pool (NixOS, no apt) inside the devenv shell, so a library a
+  plugin newly links on Linux goes into `devenv.nix`, or the release breaks.
 - **Releases** follow the fleet flow, copied from patchbay
   (`scripts/release.sh`): CalVer `YY.M.MICRO` in `[workspace.package]
   version`, change files in `.changes/`, `just release-prepare` →
@@ -147,9 +149,13 @@ allowlist; never raise `package."*"`.
   `.github/workflows/release.yml`, which builds the three installers and
   publishes the Release with them. Never create a tag or a release by
   hand, and never move a tag.
-- `release.yml`'s macOS job runs on the self-hosted release Mac. This repo
-  is public: that job must stay tag-only (no `pull_request` trigger on a
-  self-hosted job), and the guard runs the base commit's `release.sh`.
+- `release.yml`'s build jobs are self-hosted (macOS on the release Mac,
+  Linux on THEBATTLESHIP) and build through `devenv shell -- …`. This repo
+  is public: they must stay tag-only (a `v*` tag of this repo, or a
+  maintainer's dispatch on one; `needs: tag-guard` plus the same `if:`; no
+  `pull_request` trigger on a self-hosted job), and the guard runs the base
+  commit's `release.sh`. `scripts/macos/` run Apple's tools from /usr/bin
+  without the shell's nix SDK (DEVELOPER_DIR, SDKROOT); keep it that way.
 
 ## Licence
 

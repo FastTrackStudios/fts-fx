@@ -16,7 +16,12 @@
 #                                     Developer ID signed, notarized, stapled
 #                                     (self-hosted: the Mac with the signing
 #                                     identities, as Studio's desktop.yml)
-#                            Linux    fts-plugins-<v>-linux-x86_64.tar.gz (hosted)
+#                            Linux    fts-plugins-<v>-linux-x86_64.tar.gz
+#                                     (self-hosted: THEBATTLESHIP's pool)
+#                          Both build inside the fleet devenv shell
+#                          (devenv.nix; `devenv shell -- …`): one rustc store
+#                          path, the fleet's, and on NixOS the only source of
+#                          the compiler and the libraries the plugins link.
 #                          then "GitHub Release": the Release with the notes
 #                          from CHANGELOG.md and every installer that built,
 #                          plus SHA256SUMS. macOS and Linux must both succeed.
@@ -27,9 +32,15 @@
 # A tag is pushed by `just release-tag` as a person or the fts-forge App: a
 # tag pushed with GITHUB_TOKEN starts no workflow.
 #
-# SECURITY: this repo is public. The self-hosted job runs only for a v* tag
-# of this repository (never for a pull request), and the guard runs the
-# BASE commit's copy of scripts/release.sh, never the PR's.
+# SECURITY: this repo is public and both build jobs are self-hosted. They run
+# only for a v* tag of this repository, or a workflow_dispatch on such a tag
+# by a maintainer or admin (checked in "Tag guard"), never for a pull
+# request: both `needs: tag-guard`, which never runs on a pull_request event,
+# and repeat its condition in their own `if:`. A fork cannot push a tag here.
+# The release-PR guard is hosted and runs the BASE commit's copy of
+# scripts/release.sh, never the PR's. What this file cannot stop is a fork's
+# PR that edits a workflow to target the self-hosted labels itself: that is
+# the org's runner-group and fork-PR-approval settings, not this YAML.
 
 name: release
 
@@ -86,6 +97,21 @@ jobs:
     outputs:
       version: ${{ steps.v.outputs.version }}
     steps:
+      # A dispatch starts the self-hosted jobs: GitHub only lets a person
+      # with write access dispatch, and this narrows it to maintain/admin.
+      - name: A dispatch is a maintainer's
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ACTOR: ${{ github.triggering_actor }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          role="$(gh api "repos/${REPO}/collaborators/${ACTOR}/permission" --jq .role_name)"
+          case "$role" in
+            admin|maintain) echo "${ACTOR}: ${role}" ;;
+            *) echo "::error::${ACTOR} is '${role}': a release dispatch needs maintain or admin"; exit 1 ;;
+          esac
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
@@ -101,10 +127,17 @@ jobs:
   macos:
     name: macOS .pkg
     needs: tag-guard
+    if: >-
+      needs.tag-guard.result == 'success' &&
+      github.event_name != 'pull_request' &&
+      github.repository == 'FastTrackStudios/fts-fx' &&
+      startsWith(github.ref, 'refs/tags/v')
     runs-on: [self-hosted, macos, studio-release-mac]
     timeout-minutes: 180
     env:
       VERSION: ${{ needs.tag-guard.outputs.version }}
+      # The recipes read target/bundled: never a host-wide target dir.
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target
     steps:
       - name: Preflight (build volume mounted, space free)
         run: |
@@ -119,37 +152,41 @@ jobs:
         with:
           ref: ${{ github.sha }}
           clean: false
-      # The runner's service starts with a bare PATH: v26.11.0 stopped on
-      # `rustup: command not found`, v26.11.1 on `just`. Everything the job
-      # calls is put on PATH and checked here, so a missing tool fails once,
-      # by name, before anything is built.
-      - name: The job's tools on PATH (rustup, cargo, just, jq, gh)
+      - name: devenv CLI
+        uses: ./.github/actions/devenv
+      # Everything the job calls comes from the devenv shell (the fleet
+      # toolchain with both Mac targets, just, lipo) or /usr/bin (codesign,
+      # security, pkgbuild, productbuild, xcrun; scripts/macos/ put /usr/bin
+      # first and drop the nix SDK's DEVELOPER_DIR/SDKROOT for those). Checked
+      # here, so a missing tool fails once, by name, before anything builds.
+      - name: The shell's toolchain and tools
         run: |
-          set -euo pipefail
-          for dir in "$HOME/.cargo/bin" /opt/homebrew/bin "$HOME/.nix-profile/bin" \
-                     /run/current-system/sw/bin /nix/var/nix/profiles/default/bin; do
-            [ -d "$dir" ] && echo "$dir" >> "$GITHUB_PATH" && PATH="$dir:$PATH"
+          devenv shell -- bash -euo pipefail -s <<'EOF'
+          fleet-doctor
+          sysroot="$(rustc --print sysroot)"
+          for t in aarch64-apple-darwin x86_64-apple-darwin; do
+            [ -d "$sysroot/lib/rustlib/$t/lib" ] || { echo "::error::the shell's rustc has no $t"; exit 1; }
           done
           missing=""
-          for tool in rustup cargo just jq gh xcrun codesign pkgbuild productbuild security lipo; do
-            command -v "$tool" >/dev/null || missing="$missing $tool"
+          for tool in cargo just lipo cc; do command -v "$tool" >/dev/null || missing="$missing $tool"; done
+          for tool in codesign security pkgbuild productbuild pkgutil xcrun spctl; do
+            [ -x "/usr/bin/$tool" ] || missing="$missing /usr/bin/$tool"
           done
-          if [ -n "$missing" ]; then
-            echo "::error::not on this runner's PATH:$missing"; exit 1
-          fi
-      - name: Both Mac targets (bundle-universal builds arm64 and x86_64)
-        run: rustup target add aarch64-apple-darwin x86_64-apple-darwin
+          [ -z "$missing" ] || { echo "::error::missing:$missing"; exit 1; }
+          env -u DEVELOPER_DIR -u SDKROOT /usr/bin/xcrun --find notarytool
+          EOF
       - name: Build, sign, package, notarize, staple
         env:
           KEYCHAIN: fts-build.keychain
           KEYCHAIN_PW: fts-build
           NOTARIZE: "1"
         run: |
-          set -euo pipefail
+          devenv shell -- bash -euo pipefail -s <<'EOF'
           rm -rf dist target/installer
           just plugins-pkg
           just plugins-verify
           just plugins-verify x86_64
+          EOF
       - uses: actions/upload-artifact@v4
         with:
           name: installer-macos
@@ -160,39 +197,32 @@ jobs:
   linux:
     name: Linux archive
     needs: tag-guard
-    runs-on: ubuntu-24.04
+    if: >-
+      needs.tag-guard.result == 'success' &&
+      github.event_name != 'pull_request' &&
+      github.repository == 'FastTrackStudios/fts-fx' &&
+      startsWith(github.ref, 'refs/tags/v')
+    # THEBATTLESHIP's shared pool (NixOS, Studio's checks.yml label). No apt
+    # there: the compiler, mold, just and every library the plugins link come
+    # from the devenv shell (devenv.nix). kache is the host's RUSTC_WRAPPER.
+    runs-on: [self-hosted, thebattleship]
     timeout-minutes: 180
     env:
       VERSION: ${{ needs.tag-guard.outputs.version }}
+      # The recipes read target/bundled: never a host-wide target dir.
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target
     steps:
-      - name: Room to build (the hosted image ships ~14 GB free)
-        run: |
-          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
-          df -h /
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
-      - name: Build dependencies (windowing, GL, audio, mold)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            pkg-config clang libclang-dev mold \
-            libx11-dev libx11-xcb-dev libxcb1-dev libxcb-dri2-0-dev libxcb-icccm4-dev \
-            libxcursor-dev libxrandr-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev \
-            libgl-dev libwayland-dev libasound2-dev libjack-jackd2-dev \
-            libpipewire-0.3-dev libspa-0.2-dev \
-            libssl-dev libfontconfig1-dev libgtk-3-dev libwebkit2gtk-4.1-dev \
-            libsoup-3.0-dev libjavascriptcoregtk-4.1-dev \
-            libayatana-appindicator3-dev libdbus-1-dev libxdo-dev
-      - name: Rust 1.99.1
-        uses: dtolnay/rust-toolchain@1.99.1
-      - uses: taiki-e/install-action@v2
-        with:
-          tool: just
+      - name: devenv CLI
+        uses: ./.github/actions/devenv
+      - name: The shell's toolchain
+        run: devenv shell -- fleet-doctor
       - name: Build and package
-        run: just plugins-package
+        run: devenv shell -- just plugins-package
       - name: Every bundle loads
-        run: just plugins-verify
+        run: devenv shell -- just plugins-verify
       - uses: actions/upload-artifact@v4
         with:
           name: installer-linux
