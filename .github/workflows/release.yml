@@ -17,11 +17,11 @@
 #                                     (self-hosted: the Mac with the signing
 #                                     identities, as Studio's desktop.yml)
 #                            Linux    fts-plugins-<v>-linux-x86_64.tar.gz (hosted)
-#                            Windows  fts-plugins-<v>-windows-x86_64.zip (hosted)
 #                          then "GitHub Release": the Release with the notes
 #                          from CHANGELOG.md and every installer that built,
-#                          plus SHA256SUMS. macOS and Linux must succeed;
-#                          Windows is attached when it builds.
+#                          plus SHA256SUMS. macOS and Linux must both succeed.
+#                          (No Windows build for now; scripts/install.ps1 and
+#                          `just plugins-package` still work there by hand.)
 #   workflow_dispatch      the same, by hand, with the tag as the ref.
 #
 # A tag is pushed by `just release-tag` as a person or the fts-forge App: a
@@ -119,10 +119,24 @@ jobs:
         with:
           ref: ${{ github.sha }}
           clean: false
-      # The runner's service PATH has nix and Homebrew but not rustup's bin:
-      # v26.11.0's build stopped here with `rustup: command not found`.
-      - name: rustup and cargo on PATH
-        run: echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+      # The runner's service starts with a bare PATH: v26.11.0 stopped on
+      # `rustup: command not found`, v26.11.1 on `just`. Everything the job
+      # calls is put on PATH and checked here, so a missing tool fails once,
+      # by name, before anything is built.
+      - name: The job's tools on PATH (rustup, cargo, just, jq, gh)
+        run: |
+          set -euo pipefail
+          for dir in "$HOME/.cargo/bin" /opt/homebrew/bin "$HOME/.nix-profile/bin" \
+                     /run/current-system/sw/bin /nix/var/nix/profiles/default/bin; do
+            [ -d "$dir" ] && echo "$dir" >> "$GITHUB_PATH" && PATH="$dir:$PATH"
+          done
+          missing=""
+          for tool in rustup cargo just jq gh xcrun codesign pkgbuild productbuild security lipo; do
+            command -v "$tool" >/dev/null || missing="$missing $tool"
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::not on this runner's PATH:$missing"; exit 1
+          fi
       - name: Both Mac targets (bundle-universal builds arm64 and x86_64)
         run: rustup target add aarch64-apple-darwin x86_64-apple-darwin
       - name: Build, sign, package, notarize, staple
@@ -186,40 +200,9 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-  windows:
-    name: Windows archive
-    needs: tag-guard
-    runs-on: windows-2022
-    timeout-minutes: 180
-    env:
-      VERSION: ${{ needs.tag-guard.outputs.version }}
-    defaults:
-      run:
-        shell: bash
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
-      - name: Rust 1.99.1
-        uses: dtolnay/rust-toolchain@1.99.1
-      # aws-lc-sys (TLS, in the dependency graph) assembles with NASM on
-      # MSVC; CMake is already on the image.
-      - uses: ilammy/setup-nasm@v1
-      - uses: taiki-e/install-action@v2
-        with:
-          tool: just
-      - name: Build and package
-        run: just plugins-package
-      - uses: actions/upload-artifact@v4
-        with:
-          name: installer-windows
-          path: dist/fts-plugins-*-windows-*.zip
-          if-no-files-found: error
-          retention-days: 14
-
   publish:
     name: GitHub Release
-    needs: [tag-guard, macos, linux, windows]
+    needs: [tag-guard, macos, linux]
     if: >-
       always() &&
       needs.tag-guard.result == 'success' &&
@@ -246,9 +229,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_ASSETS_DIR: ${{ runner.temp }}/installers
-          WINDOWS: ${{ needs.windows.result }}
-        run: |
-          if [ "$WINDOWS" != success ]; then
-            echo "::warning::the Windows archive did not build ($WINDOWS): the Release ships macOS and Linux only"
-          fi
-          bash scripts/release.sh publish
+        run: bash scripts/release.sh publish
