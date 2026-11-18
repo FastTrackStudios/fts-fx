@@ -11,6 +11,8 @@ concurrency:
 jobs:
   pr-checks:
     name: PR checks
+    # Not on a draft PR: marking it ready starts the run.
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:

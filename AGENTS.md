@@ -93,7 +93,8 @@ just plugins-verify    # every bundle loads
 
 A PR gets one free job, `PR checks` (`.github/workflows/pr.yml`: fmt and
 the lockfile; it compiles nothing). Run the three recipes above before
-pushing: nothing else does.
+pushing: nothing else does. It runs on ready PRs only (skipped on a
+draft): mark the PR ready (`gh pr ready`) to get it.
 
 Studio pins this repo by `rev` (`studio:Cargo.toml`). A change Studio
 needs lands here first, then Studio moves its rev. Do not rename or remove
